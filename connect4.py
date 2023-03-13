@@ -53,6 +53,98 @@ def winning_move(board, piece):
                 return True
  
 
+def evaluate(board, player, opponent):
+    if winning_move(board, player):
+        return 512
+    elif winning_move(board, opponent):
+        return -512
+
+    else:
+        evaluation = 0
+
+        #Player horizontal direita
+        for c in range(column_count-3):
+            for r in range(row_count):
+                if board[r][c] == player and board[r][c+1] == player and board[r][c+2] == player and board[r][c+3] == 0:
+                    evaluation += 50
+                if board[r][c] == player and board[r][c+1] == player and board[r][c+2] == 0 and board[r][c+3] == 0:
+                    evaluation += 10
+                if board[r][c] == player and board[r][c+1] == 0 and board[r][c+2] == player and board[r][c+3] == 0:
+                    evaluation += 1
+                
+        #Oponnent horizontal direita
+        for c in range(column_count-3):
+            for r in range(row_count):
+                if board[r][c] == opponent and board[r][c+1] == opponent and board[r][c+2] == opponent and board[r][c+3] == 0:
+                    evaluation -= 50
+                if board[r][c] == opponent and board[r][c+1] == opponent and board[r][c+2] == 0 and board[r][c+3] == 0:
+                    evaluation -= 10
+                if board[r][c] == opponent and board[r][c+1] == 0 and board[r][c+2] == player and board[r][c+3] == 0:
+                    evaluation -= 1
+
+        #Player vertical cima
+        for c in range(column_count):
+            for r in range(row_count-3):
+                if board[r][c] == player and board[r+1][c] == player and board[r+2][c] == player and board[r+3][c] == 0:
+                    evaluation += 50
+                if board[r][c] == player and board[r+1][c] == player and board[r+2][c] == 0 and board[r+3][c] == 0:
+                    evaluation += 10
+                if board[r][c] == player and board[r+1][c] == 0 and board[r+2][c] == 0 and board[r+3][c] == 0:
+                    evaluation += 1
+
+        #Oponnent vertical cima
+        for c in range(column_count):
+            for r in range(row_count-3):
+                if board[r][c] == opponent and board[r+1][c] == opponent and board[r+2][c] == opponent and board[r+3][c] == 0:
+                    evaluation -= 50
+                if board[r][c] == opponent and board[r+1][c] == opponent and board[r+2][c] == 0 and board[r+3][c] == 0:
+                    evaluation -= 10
+                if board[r][c] == opponent and board[r+1][c] == 0 and board[r+2][c] == 0 and board[r+3][c] == 0:
+                    evaluation -= 1
+
+        #Player diagonal direita cima
+        for c in range(column_count-3):
+            for r in range(row_count-3):
+                if board[r][c] == player and board[r+1][c+1] == player and board[r+2][c+2] == player and board[r+3][c+3] == 0:
+                    evaluation += 50
+                if board[r][c] == player and board[r+1][c+1] == player and board[r+2][c+2] == 0 and board[r+3][c+3] == 0:
+                    evaluation += 10
+                if board[r][c] == player and board[r+1][c+1] == 0 and board[r+2][c+2] == 0 and board[r+3][c+3] == 0:
+                    evaluation += 1
+
+        #Oponnent diagonal direita cima
+        for c in range(column_count-3):
+            for r in range(row_count-3):
+                if board[r][c] == opponent and board[r+1][c+1] == opponent and board[r+2][c+2] == opponent and board[r+3][c+3] == 0:
+                    evaluation -= 50
+                if board[r][c] == opponent and board[r+1][c+1] == opponent and board[r+2][c+2] == 0 and board[r+3][c+3] == 0:
+                    evaluation -= 10
+                if board[r][c] == opponent and board[r+1][c+1] == 0 and board[r+2][c+2] == 0 and board[r+3][c+3] == 0:
+                    evaluation -= 1
+
+        # Check negatively sloped diaganols
+        for c in range(column_count-3):
+            for r in range(3, row_count):
+                if board[r][c] == player and board[r-1][c+1] == player and board[r-2][c+2] == player and board[r-3][c+3] == 0:
+                    evaluation += 50
+                if board[r][c] == player and board[r-1][c+1] == player and board[r-2][c+2] == 0 and board[r-3][c+3] == 0:
+                    evaluation += 10
+                if board[r][c] == player and board[r-1][c+1] == 0 and board[r-2][c+2] == 0 and board[r-3][c+3] == 0:
+                    evaluation += 1
+
+        for c in range(column_count-3):
+            for r in range(3, row_count):
+                if board[r][c] == opponent and board[r-1][c+1] == opponent and board[r-2][c+2] == opponent and board[r-3][c+3] == 0:
+                    evaluation -= 50
+                if board[r][c] == opponent and board[r-1][c+1] == opponent and board[r-2][c+2] == 0 and board[r-3][c+3] == 0:
+                    evaluation -= 10
+                if board[r][c] == opponent and board[r-1][c+1] == 0 and board[r-2][c+2] == 0 and board[r-3][c+3] == 0:
+                    evaluation -= 1
+
+    return evaluation
+
+
+
 def print_board(board):
     temp_board = np.flip(board, 0)
     for i in range(row_count):
@@ -86,6 +178,7 @@ while not game_over:
             if winning_move(board, player_piece):
                 print(f"Jogador {player_piece} ganhou!!")
                 game_over = True
+            print(evaluate(board, player_piece, oponnent_piece))
             print_board(board)
             turn += 1
             turn = turn % 2
@@ -104,6 +197,7 @@ while not game_over:
             if winning_move(board, player_piece):
                 print(f"Jogador {player_piece} ganhou!!")
                 game_over = True
+            print(evaluate(board, player_piece, oponnent_piece))
             print_board(board)
             turn += 1
             turn = turn % 2

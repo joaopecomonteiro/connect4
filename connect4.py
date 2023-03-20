@@ -328,8 +328,9 @@ def evaluate(board, player, opponent):
 def gen_children(board, piece):
     children = []
     for c in range(column_count):
+        new = deepcopy(board)
         r = open_row(board, c)
-            
+        
 
 
 

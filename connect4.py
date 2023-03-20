@@ -52,18 +52,17 @@ def winning_move(board, piece):
             if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
  
-
-def evaluate1(board, player, opponent):
+def evaluate(board, player, opponent):
     if winning_move(board, player):
         return 512
     elif winning_move(board, opponent):
         return -512
 
-    else:
-        evaluation_player = 0
-        evaluation_opponent = 0
+    
+    evaluation_player = 0
+    evaluation_opponent = 0
 
-    #Horizontal
+    #Horizontal direita
     for c in range(column_count-3):
         for r in range(row_count):
             player_count = 0
@@ -88,6 +87,37 @@ def evaluate1(board, player, opponent):
                         evaluation_opponent += 10
                     elif opponent_count == 3:
                         evaluation_opponent += 50
+
+
+    #Horizontal esquerda
+    for c in range(3, column_count):
+        for r in range(row_count):
+            player_count = 0
+            opponent_count = 0
+            if board[r][c] != 0:
+                for i in range(4):
+                    if board[r][c-i] == player: 
+                        player_count += 1
+                    elif board[r][c-i] == opponent:
+                        opponent_count += 1
+                if opponent_count == 0:
+                    if player_count == 1:
+                        evaluation_player += 1
+                    elif player_count == 2:
+                        evaluation_player += 10
+                    elif player_count == 3:
+                        evaluation_player += 50
+                else:
+                    if opponent_count == 1:
+                        evaluation_opponent += 1
+                    elif opponent_count == 2:
+                        evaluation_opponent += 10
+                    elif opponent_count == 3:
+                        evaluation_opponent += 50
+
+
+
+
 
     #Vertical
     for c in range(column_count):
@@ -115,7 +145,7 @@ def evaluate1(board, player, opponent):
                     elif opponent_count == 3:
                         evaluation_opponent += 50
 
-    #Diagonal direita
+    #Diagonal direita cima
     for c in range(column_count-3):
         for r in range(row_count-3):
             player_count = 0
@@ -141,16 +171,16 @@ def evaluate1(board, player, opponent):
                     elif opponent_count == 3:
                         evaluation_opponent += 50
 
-    #Diagonal esquerda
-    for c in range(column_count-3):
-        for r in range(3, row_count):
+    #Diagonal esquerda cima
+    for c in range(3, column_count):
+        for r in range(row_count-3):
             player_count = 0
             opponent_count = 0
             if board[r][c] != 0:
                 for i in range(4):
-                    if board[r-i][c+i] == player: 
+                    if board[r+i][c-i] == player: 
                         player_count += 1
-                    elif board[r-i][c+i] == opponent:
+                    elif board[r+i][c-i] == opponent:
                         opponent_count += 1
                 if opponent_count == 0:
                     if player_count == 1:
@@ -170,7 +200,10 @@ def evaluate1(board, player, opponent):
     return evaluation_player, evaluation_opponent
 
 
-def evaluate(board, player, opponent):
+
+
+
+def evaluate1(board, player, opponent):
     if winning_move(board, player):
         return 512
     elif winning_move(board, opponent):
@@ -324,23 +357,34 @@ def evaluate(board, player, opponent):
 
         return evaluation_player, evaluation_opponent
 
+def is_board_full(board):
+    for c in range(column_count):
+        for r in range(row_count):
+            if board[r][c] == 0:
+                return False
+    return True
 
 def gen_children(board, piece):
     children = []
     for c in range(column_count):
         new = deepcopy(board)
         r = open_row(board, c)
-        
+        new = drop_piece(new, r, c, piece)
+        children.append(new)
+    return children
 
 
-
-
-
-
-
-
-
-
+# def minimax(board, player, opponent, depth, max_player):
+#     if depth == 0 or is_board_full(board):
+#         return evaluate(board, player, opponent), board
+#     if max_player:
+#         maxEval = -math.inf
+#         best_move = None
+#         for move in gen_children(board, player):
+#             evaluation = minimax(move, player, opponent, depth-1, False)[0]
+#             maxEval = max(maxEval, evaluation)
+#             if maxEval == evaluation
+    
 
 
 
@@ -380,7 +424,7 @@ while not game_over:
         
         if is_not_full(board, col):
             row = open_row(board, col)
-            borad = drop_piece(board, row, col, player_piece)
+            board = drop_piece(board, row, col, player_piece)
             if winning_move(board, player_piece):
                 print(f"Jogador {player_piece} ganhou!!")
                 game_over = True

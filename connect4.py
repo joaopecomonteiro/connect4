@@ -1,7 +1,15 @@
 import numpy as np
-#import pygame
+import pygame
 import math
 from copy import deepcopy
+import time
+import sys
+
+
+BLUE = (0,0,255)
+BLACK = (0,0,0)
+RED = (255,0,0)
+YELLOW = (255,255,0)
 
 
 row_count = 6
@@ -52,6 +60,66 @@ def winning_move(board, piece):
             if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
  
+
+def score_position(board, player, opponent):
+
+    if winning_move(board, player):
+        return 512
+    elif winning_move(board, opponent):
+        return -512
+
+    score = 0
+    # Score horizontal positions
+    for r in range(row_count):
+        row_array = [int(i) for i in list(board[r, :])]
+        for c in range(column_count - 3):
+            # Create a horizontal window of 4
+            window = row_array[c:c + 4]
+            score += evaluate_window(window, player, opponent)
+
+    # Score vertical positions
+    for c in range(column_count):
+        col_array = [int(i) for i in list(board[:, c])]
+        for r in range(row_count - 3):
+            # Create a vertical window of 4
+            window = col_array[r:r + 4]
+            score += evaluate_window(window, player, opponent)
+
+    # Score positive diagonals
+    for r in range(row_count - 3):
+        for c in range(column_count - 3):
+            # Create a positive diagonal window of 4
+            window = [board[r + i][c + i] for i in range(4)]
+            score += evaluate_window(window, player, opponent)
+
+    # Score negative diagonals
+    for r in range(row_count - 3):
+        for c in range(column_count - 3):
+            # Create a negative diagonal window of 4
+            window = [board[r + 3 - i][c + i] for i in range(4)]
+            score += evaluate_window(window, player, opponent)
+
+    return score
+
+
+def evaluate_window(window, player, opponent):
+    score = 0
+    if window.count(player) == 3 and window.count(0) == 1:
+        score += 50
+    elif window.count(player) == 2 and window.count(0) == 2:
+        score += 10
+    elif window.count(player) == 1 and window.count(0) == 3:
+        score += 1
+
+    if window.count(opponent) == 3 and window.count(0) == 1:
+        score -= 50
+    elif window.count(opponent) == 2 and window.count(0) == 2:
+        score -= 10
+    elif window.count(opponent) == 1 and window.count(0) == 3:
+        score -= 1
+    return score
+    
+
 def evaluate(board, player, opponent):
     if winning_move(board, player):
         return 512
@@ -80,7 +148,7 @@ def evaluate(board, player, opponent):
                         evaluation_player += 10
                     elif player_count == 3:
                         evaluation_player += 50
-                else:
+                if player_count == 0:
                     if opponent_count == 1:
                         evaluation_opponent += 1
                     elif opponent_count == 2:
@@ -364,7 +432,7 @@ def is_board_full(board):
                 return False
     return True
 
-def gen_children(board, piece):
+def get_available_moves(board, piece):
     children = []
     for c in range(column_count):
         new = deepcopy(board)
@@ -372,6 +440,17 @@ def gen_children(board, piece):
         new = drop_piece(new, r, c, piece)
         children.append(new)
     return children
+
+def greedy(board, player, opponent):
+    valid_moves = get_available_moves(board, player)
+    best_score = -math.inf
+    best_move = None
+    for move in valid_moves:
+        score = score_position(move, player, opponent)
+        if score > best_score:
+            best_score = score
+            best_move = move
+    return best_move
 
 
 # def minimax(board, player, opponent, depth, max_player):
@@ -389,7 +468,19 @@ def gen_children(board, piece):
 
 
 
-
+def draw_board(board):
+	for c in range(column_count):
+		for r in range(row_count):
+			pygame.draw.rect(screen, BLUE, (c*SQUARESIZE, r*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
+			pygame.draw.circle(screen, BLACK, (int(c*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE+SQUARESIZE/2)), RADIUS)
+	
+	for c in range(column_count):
+		for r in range(row_count):		
+			if board[r][c] == 1:
+				pygame.draw.circle(screen, RED, (int(c*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
+			elif board[r][c] == 2: 
+				pygame.draw.circle(screen, YELLOW, (int(c*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
+	pygame.display.update()
 
 
 
@@ -407,60 +498,142 @@ def print_board(board):
     for j in range(column_count):
         b += str(j+1) + '\t'
     print(b)
-    print()
+    print("\n\n")
 
+
+
+player_1 = int(input("Jogador 1(1: Humano,2: Greedy, 3:  Minimax, 4: Random Moves): "))
+player_2 = int(input("Jogador 2(1: Humano,2: Greedy, 3:  Minimax, 4: Random Moves): "))
 board = create_board()
 print_board(board)
 game_over = False
 turn = 0
+
+pygame.init()
+
+SQUARESIZE = 75
+
+width = column_count * SQUARESIZE
+height = (column_count) * SQUARESIZE
+
+size = (width, height)
+
+RADIUS = int(SQUARESIZE/2 - 5)
+
+screen = pygame.display.set_mode(size)
+draw_board(board)
+pygame.display.update()
+
+myfont = pygame.font.SysFont("monospace", 50)
+
+
+
+
+
+
+
 
 while not game_over:
 
     if turn==0:
         player_piece = 1
         opponent_piece = 2
-        col = int(input("Escolha a coluna que quer jogar:"))
-        col -= 1
-        
-        if is_not_full(board, col):
-            row = open_row(board, col)
-            board = drop_piece(board, row, col, player_piece)
+        if player_1 == 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+
+                if event.type == pygame.MOUSEMOTION:
+                    pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
+                    posx = event.pos[0]
+                    pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE/2)), RADIUS)
+
+                pygame.display.update()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
+                    posx = event.pos[0]
+                    col = int(math.floor(posx/SQUARESIZE))
+
+                    if is_not_full(board, col):
+                        row = open_row(board, col)
+                        board = drop_piece(board, row, col, player_piece)
+                        if winning_move(board, player_piece):
+                            print(f"Jogador {player_piece} ganhou!!")
+                            label = myfont.render(f"Player {player_piece} wins!!", 1, RED)
+                            screen.blit(label, (40,10))
+                            # pygame.display.update()
+                            game_over = True
+                        print_board(board)
+                        draw_board(board)
+                        turn += 1
+                        turn = turn % 2
+                    else:
+                        print("A coluna escolhida está cheia")
+        elif player_1 == 2:
+            time.sleep(1)
+            board = greedy(board, player_piece, opponent_piece)
             if winning_move(board, player_piece):
                 print(f"Jogador {player_piece} ganhou!!")
+                label = myfont.render(f"Player {player_piece} wins!!", 1, RED)
+                screen.blit(label, (40,10))
                 game_over = True
-            else:
-                p, o = evaluate(board, player_piece, opponent_piece)
-                print(f"p={p} , o={o}")
+            draw_board(board)
             print_board(board)
             turn += 1
             turn = turn % 2
-        else:
-            print("A coluna escolhida está cheia")
         
     else:
         player_piece = 2
-        oponnent_piece = 1
-        col = int(input("Escolha a coluna que quer jogar:"))
-        col -= 1
+        opponent_piece = 1
+        if player_2 == 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
 
-        if is_not_full(board, col):
-            row = open_row(board, col)
-            board = drop_piece(board, row, col, player_piece)
+                if event.type == pygame.MOUSEMOTION:
+                    pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
+                    posx = event.pos[0]
+                    pygame.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE/2)), RADIUS)
+
+                pygame.display.update()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
+                    posx = event.pos[0]
+                    col = int(math.floor(posx/SQUARESIZE))
+
+                    if is_not_full(board, col):
+                        row = open_row(board, col)
+                        board = drop_piece(board, row, col, player_piece)
+                        if winning_move(board, player_piece):
+                            print(f"Jogador {player_piece} ganhou!!")
+                            label = myfont.render(f"Player {player_piece} wins!!", 1, YELLOW)
+                            screen.blit(label, (40,10))
+                            game_over = True
+                        print_board(board)
+                        draw_board(board)
+                        turn += 1
+                        turn = turn % 2
+                    else:
+                        print("A coluna escolhida está cheia")
+        elif player_2 == 2:
+            time.sleep(1)
+            board = greedy(board, player_piece, opponent_piece)
             if winning_move(board, player_piece):
                 print(f"Jogador {player_piece} ganhou!!")
+                label = myfont.render(f"Player {player_piece} wins!!", 1, YELLOW)
+                screen.blit(label, (40,10))
                 game_over = True
-            else:
-                p, o = evaluate(board, player_piece, opponent_piece)
-                print(f"p={p} , o={o}")
             print_board(board)
+            draw_board(board)
             turn += 1
             turn = turn % 2
-        else:
-            print("A coluna escolhida está cheia")
 
 
-    
 
+    if game_over:
+        pygame.time.wait(3000)
 
 
 

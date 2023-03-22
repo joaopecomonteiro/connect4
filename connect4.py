@@ -29,6 +29,7 @@ def open_row(board, col):
     for row in range(row_count):
         if board[row][col] == 0:
             return row
+    return None
         
 
 def is_not_full(board, col):
@@ -437,8 +438,9 @@ def get_available_moves(board, piece):
     for c in range(column_count):
         new = deepcopy(board)
         r = open_row(board, c)
-        new = drop_piece(new, r, c, piece)
-        children.append(new)
+        if r is not None:
+            new = drop_piece(new, r, c, piece)
+            children.append(new)
     return children
 
 def greedy(board, player, opponent):
@@ -452,18 +454,46 @@ def greedy(board, player, opponent):
             best_move = move
     return best_move
 
+def is_terminal_node(board):
+	return winning_move(board, 1) or winning_move(board, 2) or is_board_full(board)
 
-# def minimax(board, player, opponent, depth, max_player):
-#     if depth == 0 or is_board_full(board):
-#         return evaluate(board, player, opponent), board
-#     if max_player:
-#         maxEval = -math.inf
-#         best_move = None
-#         for move in gen_children(board, player):
-#             evaluation = minimax(move, player, opponent, depth-1, False)[0]
-#             maxEval = max(maxEval, evaluation)
-#             if maxEval == evaluation
+
+def minimax(board, depth, max_player, player, opponent):
+    # print("0okokok")
+    if depth == 0 or is_terminal_node(board):
+        print("??")
+        return score_position(board, player, opponent), board
+    # print("adwwadwawwdadwg,g,g,g,g")
+    if max_player:
+        max_eval = -math.inf
+        best_move = None
+        moves = get_available_moves(board, player)
+        # print("odawodkwao")
+        for move in moves:
+            # print(np.flip(move), 0)
+
+            evaluation = minimax(move, depth-1, False, opponent, player)[0]
+            if evaluation > max_eval:
+                max_eval = evaluation
+                best_move = move
+        print(np.flip(best_move, 0))
+        return max_eval, best_move
+    else:
+        # print("dawdwa")
+        min_eval = math.inf
+        best_move = None
+        for move in get_available_moves(board, player):
+            # print(np.flip(move), 0)
+
+            evaluation = minimax(move, depth-1, True, opponent, player)[0]
+            if evaluation < min_eval:
+                min_eval = evaluation
+                best_move = move
+        print(np.flip(best_move, 0))
+        
+        return min_eval, best_move
     
+
 
 
 
@@ -558,6 +588,12 @@ while not game_over:
                     if is_not_full(board, col):
                         row = open_row(board, col)
                         board = drop_piece(board, row, col, player_piece)
+                        if len(get_available_moves(board, player_piece)) == 0:
+                            print(f"Empate!!")
+                            label = myfont.render(f"Empate!!", 1, BLUE)
+                            screen.blit(label, (40,10))
+                            # pygame.display.update()
+                            game_over = True
                         if winning_move(board, player_piece):
                             print(f"Jogador {player_piece} ganhou!!")
                             label = myfont.render(f"Player {player_piece} wins!!", 1, RED)
@@ -573,6 +609,12 @@ while not game_over:
         elif player_1 == 2:
             time.sleep(1)
             board = greedy(board, player_piece, opponent_piece)
+            if len(get_available_moves(board, player_piece)) == 0:
+                print(f"Empate!!")
+                label = myfont.render(f"Empate!!", 1, BLUE)
+                screen.blit(label, (40,10))
+                    # pygame.display.update()
+                game_over = True
             if winning_move(board, player_piece):
                 print(f"Jogador {player_piece} ganhou!!")
                 label = myfont.render(f"Player {player_piece} wins!!", 1, RED)
@@ -606,6 +648,12 @@ while not game_over:
                     if is_not_full(board, col):
                         row = open_row(board, col)
                         board = drop_piece(board, row, col, player_piece)
+                        if len(get_available_moves(board, player_piece)) == 0:
+                            print(f"Empate!!")
+                            label = myfont.render(f"Empate!!", 1, BLUE)
+                            screen.blit(label, (40,10))
+                            # pygame.display.update()
+                            game_over = True
                         if winning_move(board, player_piece):
                             print(f"Jogador {player_piece} ganhou!!")
                             label = myfont.render(f"Player {player_piece} wins!!", 1, YELLOW)
@@ -620,6 +668,12 @@ while not game_over:
         elif player_2 == 2:
             time.sleep(1)
             board = greedy(board, player_piece, opponent_piece)
+            if len(get_available_moves(board, player_piece)) == 0:
+                print(f"Empate!!")
+                label = myfont.render(f"Empate!!", 1, BLUE)
+                screen.blit(label, (40,10))
+                            # pygame.display.update()
+                game_over = True
             if winning_move(board, player_piece):
                 print(f"Jogador {player_piece} ganhou!!")
                 label = myfont.render(f"Player {player_piece} wins!!", 1, YELLOW)
@@ -629,6 +683,25 @@ while not game_over:
             draw_board(board)
             turn += 1
             turn = turn % 2
+        elif player_2 == 3:
+            time.sleep(1)
+            board = minimax(board, 3, True, player_piece, opponent_piece)[1]
+            if len(get_available_moves(board, player_piece)) == 0:
+                print(f"Empate!!")
+                label = myfont.render(f"Empate!!", 1, BLUE)
+                screen.blit(label, (40,10))
+                            # pygame.display.update()
+                game_over = True
+            if winning_move(board, player_piece):
+                print(f"Jogador {player_piece} ganhou!!")
+                label = myfont.render(f"Player {player_piece} wins!!", 1, YELLOW)
+                screen.blit(label, (40,10))
+                game_over = True
+            print_board(board)
+            draw_board(board)
+            turn += 1
+            turn = turn % 2
+
 
 
 

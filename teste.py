@@ -85,3 +85,310 @@ children = gen_children(board, 2)
 for child in children:
     print("okok")
     print_board(child)
+
+
+
+
+def evaluate1(board, player, opponent):
+    if winning_move(board, player):
+        return 512
+    elif winning_move(board, opponent):
+        return -512
+
+    else:
+        evaluation_player = 0
+        evaluation_opponent = 0
+
+        #Player horizontal direita
+        for c in range(column_count-3):
+            for r in range(row_count):
+                if board[r][c] == player and board[r][c+1] == player and board[r][c+2] == player and board[r][c+3] == 0:
+                    evaluation_player += 50
+                if board[r][c] == player and board[r][c+1] == player and board[r][c+2] == 0 and board[r][c+3] == 0:
+                    evaluation_player += 10
+                if board[r][c] == player and board[r][c+1] == 0 and board[r][c+2] == 0 and board[r][c+3] == 0:
+                    evaluation_player += 1
+
+        #Player vertical cima
+        for c in range(column_count):
+            for r in range(row_count-3):
+                if board[r][c] == player and board[r+1][c] == player and board[r+2][c] == player and board[r+3][c] == 0:
+                    evaluation_player += 50
+                if board[r][c] == player and board[r+1][c] == player and board[r+2][c] == 0 and board[r+3][c] == 0:
+                    evaluation_player += 10
+                if board[r][c] == player and board[r+1][c] == 0 and board[r+2][c] == 0 and board[r+3][c] == 0:
+                    evaluation_player += 1
+
+        #Player diagonal direita cima
+        for c in range(column_count-3):
+            for r in range(row_count-3):
+                if board[r][c] == player and board[r+1][c+1] == player and board[r+2][c+2] == player and board[r+3][c+3] == 0:
+                    evaluation_player += 50
+                if board[r][c] == player and board[r+1][c+1] == player and board[r+2][c+2] == 0 and board[r+3][c+3] == 0:
+                    evaluation_player += 10
+                if board[r][c] == player and board[r+1][c+1] == 0 and board[r+2][c+2] == 0 and board[r+3][c+3] == 0:
+                    evaluation_player += 1
+
+        #Player diagonal direita baixo
+        for c in range(column_count-3):
+            for r in range(3, row_count):
+                if board[r][c] == player and board[r-1][c+1] == player and board[r-2][c+2] == player and board[r-3][c+3] == 0:
+                    evaluation_player += 50
+                if board[r][c] == player and board[r-1][c+1] == player and board[r-2][c+2] == 0 and board[r-3][c+3] == 0:
+                    evaluation_player += 10
+                if board[r][c] == player and board[r-1][c+1] == 0 and board[r-2][c+2] == 0 and board[r-3][c+3] == 0:
+                    evaluation_player += 1
+
+        #Player diagonal esquerda cima
+        for c in range(3, column_count):
+            for r in range(row_count-3):
+                if board[r][c] == player and board[r+1][c-1] == player and board[r+2][c-2] == player and board[r+3][c-3] == 0:
+                    evaluation_player += 50
+                if board[r][c] == player and board[r+1][c-1] == player and board[r+2][c-2] == 0 and board[r+3][c-3] == 0:
+                    evaluation_player += 10
+                if board[r][c] == player and board[r+1][c-1] == 0 and board[r+2][c-2] == 0 and board[r+3][c-3] == 0:
+                    evaluation_player += 1
+
+        #Player diagonal esquerda baixo
+        for c in range(3, column_count):
+            for r in range(3, row_count):
+                if board[r][c] == player and board[r-1][c-1] == player and board[r-2][c-2] == player and board[r-3][c-3] == 0:
+                    evaluation_player += 50
+                if board[r][c] == player and board[r-1][c-1] == player and board[r-2][c-2] == 0 and board[r-3][c-3] == 0:
+                    evaluation_player += 10
+                if board[r][c] == player and board[r-1][c-1] == 0 and board[r-2][c-2] == 0 and board[r-3][c-3] == 0:
+                    evaluation_player += 1
+
+        #Player horizontal esquerda
+        for c in range(3, column_count):
+            for r in range(row_count):
+                if board[r][c] == player and board[r][c-1] == player and board[r][c-2] == player and board[r][c-3] == 0:
+                    evaluation_player += 50
+                if board[r][c] == player and board[r][c-1] == player and board[r][c-2] == 0 and board[r][c-3] == 0:
+                    evaluation_player += 10
+                if board[r][c] == player and board[r][c-1] == 0 and board[r][c-2] == 0 and board[r][c-3] == 0:
+                    evaluation_player += 1
+
+
+
+        #Player horizontal direita
+        for c in range(column_count-3):
+            for r in range(row_count):
+                if board[r][c] == opponent and board[r][c+1] == opponent and board[r][c+2] == opponent and board[r][c+3] == 0:
+                    evaluation_opponent += 50
+                if board[r][c] == opponent and board[r][c+1] == opponent and board[r][c+2] == 0 and board[r][c+3] == 0:
+                    evaluation_opponent += 10
+                if board[r][c] == opponent and board[r][c+1] == 0 and board[r][c+2] == 0 and board[r][c+3] == 0:
+                    evaluation_opponent += 1
+
+        #Player vertical cima
+        for c in range(column_count):
+            for r in range(row_count-3):
+                if board[r][c] == opponent and board[r+1][c] == opponent and board[r+2][c] == opponent and board[r+3][c] == 0:
+                    evaluation_opponent += 50
+                if board[r][c] == opponent and board[r+1][c] == opponent and board[r+2][c] == 0 and board[r+3][c] == 0:
+                    evaluation_opponent += 10
+                if board[r][c] == opponent and board[r+1][c] == 0 and board[r+2][c] == 0 and board[r+3][c] == 0:
+                    evaluation_opponent += 1
+
+        #Player diagonal direita cima
+        for c in range(column_count-3):
+            for r in range(row_count-3):
+                if board[r][c] == opponent and board[r+1][c+1] == opponent and board[r+2][c+2] == opponent and board[r+3][c+3] == 0:
+                    evaluation_opponent += 50
+                if board[r][c] == opponent and board[r+1][c+1] == opponent and board[r+2][c+2] == 0 and board[r+3][c+3] == 0:
+                    evaluation_opponent += 10
+                if board[r][c] == opponent and board[r+1][c+1] == 0 and board[r+2][c+2] == 0 and board[r+3][c+3] == 0:
+                    evaluation_opponent += 1
+
+        #Player diagonal direita baixo
+        for c in range(column_count-3):
+            for r in range(3, row_count):
+                if board[r][c] == opponent and board[r-1][c+1] == opponent and board[r-2][c+2] == opponent and board[r-3][c+3] == 0:
+                    evaluation_opponent += 50
+                if board[r][c] == opponent and board[r-1][c+1] == opponent and board[r-2][c+2] == 0 and board[r-3][c+3] == 0:
+                    evaluation_opponent += 10
+                if board[r][c] == opponent and board[r-1][c+1] == 0 and board[r-2][c+2] == 0 and board[r-3][c+3] == 0:
+                    evaluation_opponent += 1
+
+        #Player diagonal esquerda cima
+        for c in range(3, column_count):
+            for r in range(row_count-3):
+                if board[r][c] == opponent and board[r+1][c-1] == opponent and board[r+2][c-2] == opponent and board[r+3][c-3] == 0:
+                    evaluation_opponent += 50
+                if board[r][c] == opponent and board[r+1][c-1] == opponent and board[r+2][c-2] == 0 and board[r+3][c-3] == 0:
+                    evaluation_opponent += 10
+                if board[r][c] == opponent and board[r+1][c-1] == 0 and board[r+2][c-2] == 0 and board[r+3][c-3] == 0:
+                    evaluation_opponent += 1
+
+        #Player diagonal esquerda baixo
+        for c in range(3, column_count):
+            for r in range(3, row_count):
+                if board[r][c] == opponent and board[r-1][c-1] == opponent and board[r-2][c-2] == opponent and board[r-3][c-3] == 0:
+                    evaluation_opponent += 50
+                if board[r][c] == opponent and board[r-1][c-1] == opponent and board[r-2][c-2] == 0 and board[r-3][c-3] == 0:
+                    evaluation_opponent += 10
+                if board[r][c] == opponent and board[r-1][c-1] == 0 and board[r-2][c-2] == 0 and board[r-3][c-3] == 0:
+                    evaluation_opponent += 1
+
+        #Player horizontal esquerda
+        for c in range(3, column_count):
+            for r in range(row_count):
+                if board[r][c] == opponent and board[r][c-1] == opponent and board[r][c-2] == opponent and board[r][c-3] == 0:
+                    evaluation_opponent += 50
+                if board[r][c] == opponent and board[r][c-1] == opponent and board[r][c-2] == 0 and board[r][c-3] == 0:
+                    evaluation_opponent += 10
+                if board[r][c] == opponent and board[r][c-1] == 0 and board[r][c-2] == 0 and board[r][c-3] == 0:
+                    evaluation_opponent += 1
+
+        return evaluation_player, evaluation_opponent
+
+
+
+
+def evaluate(board, player, opponent):
+    if winning_move(board, player):
+        return 512
+    elif winning_move(board, opponent):
+        return -512
+
+    
+    evaluation_player = 0
+    evaluation_opponent = 0
+
+    #Horizontal direita
+    for c in range(column_count-3):
+        for r in range(row_count):
+            player_count = 0
+            opponent_count = 0
+            if board[r][c] != 0:
+                for i in range(4):
+                    if board[r][c+i] == player: 
+                        player_count += 1
+                    elif board[r][c+i] == opponent:
+                        opponent_count += 1
+                if opponent_count == 0:
+                    if player_count == 1:
+                        evaluation_player += 1
+                    elif player_count == 2:
+                        evaluation_player += 10
+                    elif player_count == 3:
+                        evaluation_player += 50
+                if player_count == 0:
+                    if opponent_count == 1:
+                        evaluation_opponent += 1
+                    elif opponent_count == 2:
+                        evaluation_opponent += 10
+                    elif opponent_count == 3:
+                        evaluation_opponent += 50
+
+
+    #Horizontal esquerda
+    for c in range(3, column_count):
+        for r in range(row_count):
+            player_count = 0
+            opponent_count = 0
+            if board[r][c] != 0:
+                for i in range(4):
+                    if board[r][c-i] == player: 
+                        player_count += 1
+                    elif board[r][c-i] == opponent:
+                        opponent_count += 1
+                if opponent_count == 0:
+                    if player_count == 1:
+                        evaluation_player += 1
+                    elif player_count == 2:
+                        evaluation_player += 10
+                    elif player_count == 3:
+                        evaluation_player += 50
+                else:
+                    if opponent_count == 1:
+                        evaluation_opponent += 1
+                    elif opponent_count == 2:
+                        evaluation_opponent += 10
+                    elif opponent_count == 3:
+                        evaluation_opponent += 50
+
+
+
+
+
+    #Vertical
+    for c in range(column_count):
+        for r in range(row_count-3):
+            player_count = 0
+            opponent_count = 0
+            if board[r][c] != 0:
+                for i in range(4):
+                    if board[r+i][c] == player: 
+                        player_count += 1
+                    elif board[r+i][c] == opponent:
+                        opponent_count += 1
+                if opponent_count == 0:
+                    if player_count == 1:
+                        evaluation_player += 1
+                    elif player_count == 2:
+                        evaluation_player += 10
+                    elif player_count == 3:
+                        evaluation_player += 50
+                else:
+                    if opponent_count == 1:
+                        evaluation_opponent += 1
+                    elif opponent_count == 2:
+                        evaluation_opponent += 10
+                    elif opponent_count == 3:
+                        evaluation_opponent += 50
+
+    #Diagonal direita cima
+    for c in range(column_count-3):
+        for r in range(row_count-3):
+            player_count = 0
+            opponent_count = 0
+            if board[r][c] != 0:
+                for i in range(4):
+                    if board[r+i][c+i] == player: 
+                        player_count += 1
+                    elif board[r+i][c+i] == opponent:
+                        opponent_count += 1
+                if opponent_count == 0:
+                    if player_count == 1:
+                        evaluation_player += 1
+                    elif player_count == 2:
+                        evaluation_player += 10
+                    elif player_count == 3:
+                        evaluation_player += 50
+                else:
+                    if opponent_count == 1:
+                        evaluation_opponent += 1
+                    elif opponent_count == 2:
+                        evaluation_opponent += 10
+                    elif opponent_count == 3:
+                        evaluation_opponent += 50
+
+    #Diagonal esquerda cima
+    for c in range(3, column_count):
+        for r in range(row_count-3):
+            player_count = 0
+            opponent_count = 0
+            if board[r][c] != 0:
+                for i in range(4):
+                    if board[r+i][c-i] == player: 
+                        player_count += 1
+                    elif board[r+i][c-i] == opponent:
+                        opponent_count += 1
+                if opponent_count == 0:
+                    if player_count == 1:
+                        evaluation_player += 1
+                    elif player_count == 2:
+                        evaluation_player += 10
+                    elif player_count == 3:
+                        evaluation_player += 50
+                else:
+                    if opponent_count == 1:
+                        evaluation_opponent += 1
+                    elif opponent_count == 2:
+                        evaluation_opponent += 10
+                    elif opponent_count == 3:
+                        evaluation_opponent += 50
+
+    return evaluation_player, evaluation_opponent

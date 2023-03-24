@@ -76,7 +76,7 @@ def evaluate_window(window, piece):
 		score += 50
 	elif window.count(piece) == 2 and window.count(EMPTY) == 2:
 		score += 10
-	elif window.count(piece) == 1 and window.count(EMPTY) == 0:
+	elif window.count(piece) == 1 and window.count(EMPTY) == 3:
 		score += 1
 	
 	
@@ -199,11 +199,16 @@ def pick_best_move(board, piece):
 		temp_board = board.copy()
 		drop_piece(temp_board, row, col, piece)
 		score = score_position(temp_board, piece)
+		print(f"Score: {score}, col: {col+1}")
 		if score > best_score:
 			best_score = score
 			best_col = col
 
 	return best_col
+
+
+
+
 
 def draw_board(board):
 	for c in range(COLUMN_COUNT):
@@ -225,7 +230,7 @@ game_over = False
 
 pygame.init()
 
-SQUARESIZE = 100
+SQUARESIZE = 75
 
 width = COLUMN_COUNT * SQUARESIZE
 height = (ROW_COUNT+1) * SQUARESIZE
@@ -257,29 +262,30 @@ while not game_over:
 
 		pygame.display.update()
 
-		# if event.type == pygame.MOUSEBUTTONDOWN:
-		# 	pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
-		# 	#print(event.pos)
-		# 	# Ask for Player 1 Input
-		# 	if turn == PLAYER:
-		# 		posx = event.pos[0]
-		# 		col = int(math.floor(posx/SQUARESIZE))
-	if turn == PLAYER:
-		col = pick_best_move(board, AI_PIECE)
+		if event.type == pygame.MOUSEBUTTONDOWN:
+			pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
+			#print(event.pos)
+			# Ask for Player 1 Input
+			if turn == PLAYER:
+				posx = event.pos[0]
+				col = int(math.floor(posx/SQUARESIZE))
+	# if turn == PLAYER:
+		# col = pick_best_move(board, AI_PIECE)
 
-		if is_valid_location(board, col):
-			row = get_next_open_row(board, col)
-			drop_piece(board, row, col, PLAYER_PIECE)
-			if winning_move(board, PLAYER_PIECE):
-				label = myfont.render("Player 1 wins!!", 1, RED)
-				screen.blit(label, (40,10))
-				game_over = True
+				if is_valid_location(board, col):
+					row = get_next_open_row(board, col)
+					drop_piece(board, row, col, PLAYER_PIECE)
+					# print(f"dawd{score_position(board, PLAYER_PIECE)}")
+					if winning_move(board, PLAYER_PIECE):
+						label = myfont.render("Player 1 wins!!", 1, RED)
+						screen.blit(label, (40,10))
+						game_over = True
 						
-			turn += 1
-			turn = turn % 2
-			print_board(board)
-			draw_board(board)
-			print(score_position(board, PLAYER_PIECE))
+				turn += 1
+				turn = turn % 2
+				print_board(board)
+				draw_board(board)
+				print(score_position(board, PLAYER_PIECE))
 
 
 
@@ -287,14 +293,15 @@ while not game_over:
 	if turn == AI and not game_over:				
 
 		#col = random.randint(0, COLUMN_COUNT-1)
-		#col = pick_best_move(board, AI_PIECE)
+		# col = pick_best_move(board, AI_PIECE)
 		col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
 
 		if is_valid_location(board, col):
 			#pygame.time.wait(500)
 			row = get_next_open_row(board, col)
 			drop_piece(board, row, col, AI_PIECE)
-
+            
+			print(score_position(board, AI_PIECE))
 			if winning_move(board, AI_PIECE):
 				label = myfont.render("Player 2 wins!!", 1, YELLOW)
 				screen.blit(label, (40,10))

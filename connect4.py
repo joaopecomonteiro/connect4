@@ -71,7 +71,7 @@ def score_position(board, player, opponent):
 
     score = 0
 
-    # ## Score center column
+    ## Score center column
     # center_array = [int(i) for i in list(board[:, column_count//2])]
     # center_count = center_array.count(player_piece)
     # score += center_count * 3
@@ -211,6 +211,107 @@ def minimax(board, depth, max_player, player, opponent):
         return min_eval, best_move
     
 
+def alpha_beta(board, depth, max_player, player, opponent, alpha, beta):
+    if depth == 0 or is_terminal_node(board):
+        # print(score_position(board, player, opponent))
+        # print(board)
+        return score_position(board, player, opponent), board
+    if max_player:
+        max_eval = -math.inf
+        best_move = None
+        moves = get_available_moves(board, player)
+        for move in moves:
+            evaluation = alpha_beta(move, depth-1, False, opponent, player, alpha, beta)[0]
+            if evaluation > max_eval:
+                max_eval = evaluation
+                best_move = move
+            alpha = max(alpha, max_eval)
+            if alpha >= beta:
+                break
+        return max_eval, best_move
+    else:
+        min_eval = math.inf
+        best_move = None
+        for move in get_available_moves(board, player):
+            evaluation = alpha_beta(move, depth-1, True, opponent, player, alpha, beta)[0]
+            if evaluation < min_eval:
+                min_eval = evaluation
+                best_move = move
+            beta = min(beta, min_eval)
+            if alpha >= beta:
+                break
+        return min_eval, best_move
+
+def alpha_beta2(board, depth, max_player, alpha, beta):
+    if turn == 0:
+        if depth == 0 or is_terminal_node(board):
+        # print(score_position(board, player, opponent))
+        # print(board)
+            return score_position(board, 1, 2), board
+        if max_player:
+            max_eval = -math.inf
+            best_move = None
+            moves = get_available_moves(board, 1)
+            for move in moves:
+                evaluation = alpha_beta2(move, depth-1, False, alpha, beta)[0]
+                if evaluation > max_eval:
+                    max_eval = evaluation
+                    best_move = move
+                alpha = max(alpha, max_eval)
+                if alpha >= beta:
+                    break
+            return max_eval, best_move
+        else:
+            min_eval = math.inf
+            best_move = None
+            for move in get_available_moves(board, 2):
+                evaluation = alpha_beta2(move, depth-1, True, alpha, beta)[0]
+                if evaluation < min_eval:
+                    min_eval = evaluation
+                    best_move = move
+                beta = min(beta, min_eval)
+                if alpha >= beta:
+                    break
+            return min_eval, best_move
+    else:
+        if depth == 0 or is_terminal_node(board):
+        # print(score_position(board, player, opponent))
+        # print(board)
+            return score_position(board, 2, 1), board
+        if max_player:
+            max_eval = -math.inf
+            best_move = None
+            moves = get_available_moves(board, 2)
+            for move in moves:
+                evaluation = alpha_beta2(move, depth-1, False, alpha, beta)[0]
+                if evaluation > max_eval:
+                    max_eval = evaluation
+                    best_move = move
+                alpha = max(alpha, max_eval)
+                if alpha >= beta:
+                    break
+            return max_eval, best_move
+        else:
+            min_eval = math.inf
+            best_move = None
+            for move in get_available_moves(board, 2):
+                evaluation = alpha_beta2(move, depth-1, True, alpha, beta)[0]
+                if evaluation < min_eval:
+                    min_eval = evaluation
+                    best_move = move
+                beta = min(beta, min_eval)
+                if alpha >= beta:
+                    break
+            return min_eval, best_move
+
+
+
+
+
+
+
+
+
 
 
 
@@ -249,8 +350,8 @@ def print_board(board):
 
 
 
-player_1 = int(input("Jogador 1(1: Humano,2: Greedy, 3:  Minimax, 4: Random Moves): "))
-player_2 = int(input("Jogador 2(1: Humano,2: Greedy, 3:  Minimax, 4: Random Moves): "))
+player_1 = int(input("Jogador 1(1: Humano,2: Greedy, 3:  Minimax, 4: Alpha Beta): "))
+player_2 = int(input("Jogador 2(1: Humano,2: Greedy, 3:  Minimax, 4: Alpha Beta): "))
 board = create_board()
 print_board(board)
 game_over = False
@@ -423,7 +524,25 @@ while not game_over:
             draw_board(board)
             turn += 1
             turn = turn % 2
-
+        elif player_2 == 4:
+            time.sleep(1)
+            board = alpha_beta(board, 5, True, player_piece, opponent_piece, -math.inf, math.inf)[1]
+            # board = alpha_beta2(board, 5, True, -math.inf, math.inf)[1]
+            if len(get_available_moves(board, player_piece)) == 0:
+                print(f"Empate!!")
+                label = myfont.render(f"Empate!!", 1, BLUE)
+                screen.blit(label, (40,10))
+                            # pygame.display.update()
+                game_over = True
+            if winning_move(board, player_piece):
+                print(f"Jogador {player_piece} ganhou!!")
+                label = myfont.render(f"Player {player_piece} wins!!", 1, YELLOW)
+                screen.blit(label, (40,10))
+                game_over = True
+            print_board(board)
+            draw_board(board)
+            turn += 1
+            turn = turn % 2
 
 
 

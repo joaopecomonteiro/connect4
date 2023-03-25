@@ -1,10 +1,10 @@
 import numpy as np
 import pygame
 import math
-from copy import deepcopy
 import time
 import sys
 import random
+from collections import defaultdict
 
 BLUE = (0,0,255)
 BLACK = (0,0,0)
@@ -16,9 +16,68 @@ row_count = 6
 column_count = 7
 
 
-def
+def MCTS():
+    def __init__(self, state, parent=None):
+        self.state = state
+        self.parent = parent
+        self.children = []
+        self.number_of_visits = 0
+        self.results = defaultdict(int)
+        self.results[1] = 0
+        self.results[-1] = 0
+        self.untried_cols = None
+        self.untried_cols = self.untried_cols()
+        
+    
+    def untried_cols(self):
+        self.untried_cols = get_valid_locations(self.state)
+        return self.untried_cols
+    
+
+    def q(self):
+        return self.results[1] - self.results[-1] 
 
 
+    def n(self):
+        return self.number_of_visits
+
+
+    def expand(self):
+        col = self.untried_cols.pop()
+        row = open_row(self.state, col)
+        next_state = drop_piece(self.state, row, col, player2_piece)
+        child_node = MCTS(next_state, parent=self)
+        self.children.append(child_node)
+        return child_node
+    
+                
+    def rollout_policy(self, possible_moves):
+        return possible_moves[np.random.randint(len(possible_moves))]
+
+
+    def rollout(self):
+        current_rollout_state = self.state
+        while not is_terminal_node(current_rollout_state):
+            possible_moves = get_valid_locations(current_rollout_state)
+            col = self.rollout_policy(possible_moves)
+            row = open_row(current_rollout_state, col)
+            drop_piece(current_rollout_state, row, col, player2_piece)
+        return game_result(current_rollout_state)
+
+
+
+
+
+
+
+
+def game_result(board):
+    if winning_move(board, player1_piece):
+        return -1
+    elif winning_move(board, player2_piece):
+        return 1
+    else:
+        return 0
 
 
 
@@ -55,6 +114,10 @@ def print_board(board):
         b += str(j+1) + '\t'
     print(b)
     print("\n\n")
+
+
+
+
 
 
 def winning_move(board, piece):
@@ -165,28 +228,28 @@ def is_terminal_node(board):
 
 
 
-def alpha_beta(board, depth, alpha, beta, maximizingPlayer):
+def minimax(board, depth, alpha, beta, maximizingPlayer):
     if turn != 0:
         valid_locations = get_valid_locations(board)
         is_terminal = is_terminal_node(board)
         if depth == 0 or is_terminal:
             if is_terminal:
-                if winning_move(board, 2):
+                if winning_move(board, player2_piece):
                     return (None, 100000000000000)
-                elif winning_move(board, 1):
+                elif winning_move(board, player1_piece):
                     return (None, -10000000000000)
                 else: # Game is over, no more valid moves
                     return (None, 0)
             else: # Depth is zero
-                return (None, score_position(board, 2))
+                return (None, score_position(board, player2_piece))
         if maximizingPlayer:
             value = -math.inf
             column = random.choice(valid_locations)
             for col in valid_locations:
                 row = open_row(board, col)
                 b_copy = board.copy()
-                drop_piece(b_copy, row, col, 2)
-                new_score = alpha_beta(b_copy, depth-1, alpha, beta, False)[1]
+                drop_piece(b_copy, row, col, player2_piece)
+                new_score = minimax(b_copy, depth-1, False)[1]
                 if new_score > value:
                     value = new_score
                     column = col
@@ -198,8 +261,8 @@ def alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             for col in valid_locations:
                 row = open_row(board, col)
                 b_copy = board.copy()
-                drop_piece(b_copy, row, col, 1)
-                new_score = alpha_beta(b_copy, depth-1, alpha, beta, True)[1]
+                drop_piece(b_copy, row, col, player1_piece)
+                new_score = minimax(b_copy, depth-1, True)[1]
                 if new_score < value:
                     value = new_score
                     column = col
@@ -469,7 +532,7 @@ while not game_over:
         elif player_2 == 3:
 
             time.sleep(1)
-            col = alpha_beta(board, 5, -math.inf, math.inf, True)[0]
+            col = minimax(board, 5, -math.inf, math.inf, True)[0]
             if is_valid_location(board, col):
                 row = open_row(board, col)
                 drop_piece(board, row, col, player2_piece)

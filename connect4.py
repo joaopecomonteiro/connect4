@@ -16,8 +16,8 @@ row_count = 6
 column_count = 7
 
 
-def MCTS():
-    def __init__(self, state, parent=None):
+class MCTS():
+    def __init__(self, state=None, parent=None):
         self.state = state
         self.parent = parent
         self.children = []
@@ -25,12 +25,18 @@ def MCTS():
         self.results = defaultdict(int)
         self.results[1] = 0
         self.results[-1] = 0
-        self.untried_cols = None
+        # self.untried_cols = None
         self.untried_cols = self.untried_cols()
         
+
+    # def create_state(self, board):
+    #     self.state = board
+
     
     def untried_cols(self):
+        # print(self.state)
         self.untried_cols = get_valid_locations(self.state)
+        # print("adwawd")
         return self.untried_cols
     
 
@@ -40,13 +46,18 @@ def MCTS():
 
     def n(self):
         return self.number_of_visits
+    
+
+    def mcts_drop_piece(self):
+        
 
 
     def expand(self):
         col = self.untried_cols.pop()
         row = open_row(self.state, col)
         next_state = drop_piece(self.state, row, col, player2_piece)
-        child_node = MCTS(next_state, parent=self)
+        print(next_state)
+        child_node = MCTS(state=next_state, parent=self)
         self.children.append(child_node)
         return child_node
     
@@ -64,8 +75,40 @@ def MCTS():
             drop_piece(current_rollout_state, row, col, player2_piece)
         return game_result(current_rollout_state)
 
+    
+    def backpropagate(self, result):
+        self.number_of_visits += 1
+        self.results[result] += 1
+        if self.parent:
+            self.parent.backpropagate(result)
+    
+
+    def is_fully_expanded(self):
+        return len(self.untried_cols) == 0
 
 
+    def best_child(self, c_param=0.1):
+        choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
+        return self.children[np.argmax(choices_weights)]
+    
+
+    def tree_policy(self):
+        current_node = self
+        while not is_terminal_node(current_node.state):
+            if not current_node.is_fully_expanded():
+                return current_node.expand()
+            else:
+                current_node = current_node.best_child()
+        return current_node
+
+
+    def best_action(self):
+        simulation_no = 100
+        for i in range(simulation_no):
+            v = self.tree_policy()
+            reward = v.rollout()
+            v.backpropagate(reward)
+        return self.best_child(c_param=0.)
 
 
 
@@ -89,6 +132,7 @@ def create_board():
 
 def drop_piece(board, row, col, piece):
     board[row][col] = piece
+    return board
 
 
 def open_row(board, col):
@@ -175,12 +219,12 @@ def evaluate_window(window, player):
 
 
 def score_position(board, player):
-    score = 0
 
-    ## Score center column
-    # center_array = [int(i) for i in list(board[:, column_count//2])]
-    # center_count = center_array.count(player_piece)
-    # score += center_count * 3
+    opponent = 2
+    if player == 2:
+         opponent = 1
+
+    score = 0
 
     # Score horizontal positions
     for r in range(row_count):
@@ -188,6 +232,10 @@ def score_position(board, player):
         for c in range(column_count - 3):
             # Create a horizontal window of 4
             window = row_array[c:c + 4]
+            if window.count(player) == 4:
+                return 512
+            elif window.count(opponent) == 4:
+                return -512
             score += evaluate_window(window, player)
 
     # Score vertical positions
@@ -196,6 +244,10 @@ def score_position(board, player):
         for r in range(row_count - 3):
             # Create a vertical window of 4
             window = col_array[r:r + 4]
+            if window.count(player) == 4:
+                return 512
+            elif window.count(opponent) == 4:
+                return -512
             score += evaluate_window(window, player)
 
     # Score positive diagonals
@@ -203,6 +255,10 @@ def score_position(board, player):
         for c in range(column_count - 3):
             # Create a positive diagonal window of 4
             window = [board[r + i][c + i] for i in range(4)]
+            if window.count(player) == 4:
+                return 512
+            elif window.count(opponent) == 4:
+                return -512
             score += evaluate_window(window, player)
 
     # Score negative diagonals
@@ -210,6 +266,10 @@ def score_position(board, player):
         for c in range(column_count - 3):
             # Create a negative diagonal window of 4
             window = [board[r + 3 - i][c + i] for i in range(4)]
+            if window.count(player) == 4:
+                return 512
+            elif window.count(opponent) == 4:
+                return -512
             score += evaluate_window(window, player)
 
     return score
@@ -362,7 +422,7 @@ def draw_board(board):
 
 
 player_1 = int(input("Jogador 1(1: Humano,2: Greedy, 3:  Minimax, 4: Alpha Beta): "))
-player_2 = int(input("Jogador 2(1: Humano,2: Greedy, 3:  Minimax, 4: Alpha Beta): "))
+player_2 = int(input("Jogador 2(1: Humano,2: Greedy, 3:  Minimax, 4: Alpha Beta, 5: MonteCarloTreeSearch): "))
 board = create_board()
 print_board(board)
 game_over = False
@@ -586,4 +646,34 @@ while not game_over:
                 turn += 1
                 turn = turn % 2
 
-        
+        elif player_2 == 5:
+
+            root = MCTS(state=board)
+            # root.create_state(board)
+            board = root.best_action().state
+            if len(get_valid_locations(board)) == 0:
+                    print(f"Empate!!")
+                    label = myfont.render(f"Empate!!", 1, BLUE)
+                    screen.blit(label, (40,10))
+                    # pygame.display.update()
+                    game_over = True
+            if winning_move(board, player2_piece):
+                print(f"Jogador {player2_piece} ganhou!!")
+                label = myfont.render(f"Player {player2_piece} wins!!", 1, YELLOW)
+                screen.blit(label, (40,10))
+                # pygame.display.update()
+                game_over = True
+            print_board(board)
+            draw_board(board)
+            print(score_position(board, player2_piece))
+            turn += 1
+            turn = turn % 2
+
+
+
+while game_over: 
+    pygame.display.update()
+    for event in pygame.event.get(): 
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()

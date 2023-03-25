@@ -48,15 +48,18 @@ class MCTS():
         return self.number_of_visits
     
 
-    def mcts_drop_piece(self):
-        
+    def mcts_drop_piece(self, board, row, col):
+        temp_board = board.copy()
+        temp_board[row][col] = player2_piece
+        return temp_board
+
 
 
     def expand(self):
         col = self.untried_cols.pop()
         row = open_row(self.state, col)
-        next_state = drop_piece(self.state, row, col, player2_piece)
-        print(next_state)
+        next_state = self.mcts_drop_piece(self.state, row, col)
+        # print(next_state)
         child_node = MCTS(state=next_state, parent=self)
         self.children.append(child_node)
         return child_node
@@ -72,7 +75,7 @@ class MCTS():
             possible_moves = get_valid_locations(current_rollout_state)
             col = self.rollout_policy(possible_moves)
             row = open_row(current_rollout_state, col)
-            drop_piece(current_rollout_state, row, col, player2_piece)
+            current_rollout_state = self.mcts_drop_piece(current_rollout_state, row, col)
         return game_result(current_rollout_state)
 
     
@@ -87,7 +90,7 @@ class MCTS():
         return len(self.untried_cols) == 0
 
 
-    def best_child(self, c_param=0.1):
+    def best_child(self, c_param=2):
         choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
         return self.children[np.argmax(choices_weights)]
     

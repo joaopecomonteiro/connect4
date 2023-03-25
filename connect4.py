@@ -48,18 +48,25 @@ class MCTS():
         return self.number_of_visits
     
 
-    def mcts_drop_piece(self, board, row, col):
+    def mcts_drop_piece(self, board, row, col, piece):
         temp_board = board.copy()
-        temp_board[row][col] = player2_piece
+        temp_board[row][col] = piece
         return temp_board
 
 
 
-    def expand(self):
+    def expand(self, turn):
         col = self.untried_cols.pop()
         row = open_row(self.state, col)
-        next_state = self.mcts_drop_piece(self.state, row, col)
+        if turn == 0:
+            next_state = self.mcts_drop_piece(self.state, row, col, player1_piece)
+        else:
+            next_state = self.mcts_drop_piece(self.state, row, col, player2_piece)
+        
         # print(next_state)
+
+        # next_state = self.mcts_drop_piece(self.state, row, col, player2_piece)
+
         child_node = MCTS(state=next_state, parent=self)
         self.children.append(child_node)
         return child_node
@@ -71,11 +78,19 @@ class MCTS():
 
     def rollout(self):
         current_rollout_state = self.state
+        turn = 0
         while not is_terminal_node(current_rollout_state):
             possible_moves = get_valid_locations(current_rollout_state)
+            # print(np.flip(current_rollout_state, 0))
+            # print(possible_moves)
             col = self.rollout_policy(possible_moves)
             row = open_row(current_rollout_state, col)
-            current_rollout_state = self.mcts_drop_piece(current_rollout_state, row, col)
+            if turn == 0:
+                current_rollout_state = self.mcts_drop_piece(current_rollout_state, row, col, player1_piece)
+            else:
+                current_rollout_state = self.mcts_drop_piece(current_rollout_state, row, col, player2_piece)
+            turn += 1
+            turn = turn % 2
         return game_result(current_rollout_state)
 
     
@@ -97,21 +112,28 @@ class MCTS():
 
     def tree_policy(self):
         current_node = self
+        turn = 0
+        turn += 1
+        turn = turn % 2    
         while not is_terminal_node(current_node.state):
             if not current_node.is_fully_expanded():
-                return current_node.expand()
+                return current_node.expand(turn)
             else:
                 current_node = current_node.best_child()
+            turn += 1
+            turn = turn % 2 
         return current_node
 
 
     def best_action(self):
         simulation_no = 100
+        # print(self.untried_cols)
         for i in range(simulation_no):
             v = self.tree_policy()
             reward = v.rollout()
+            print(reward)
             v.backpropagate(reward)
-        return self.best_child(c_param=0.)
+        return self.best_child(c_param=2)
 
 
 

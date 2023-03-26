@@ -17,7 +17,7 @@ column_count = 7
 
 
 class MCTS():
-    def __init__(self, state=None, parent=None):
+    def __init__(self, state=None, parent=None, piece=None):
         self.state = state
         self.parent = parent
         self.children = []
@@ -27,6 +27,7 @@ class MCTS():
         self.results[-1] = 0
         # self.untried_cols = None
         self.untried_cols = self.untried_cols()
+        self.piece = piece
         
 
     # def create_state(self, board):
@@ -55,19 +56,15 @@ class MCTS():
 
 
 
-    def expand(self, turn):
+    def expand(self):
         col = self.untried_cols.pop()
         row = open_row(self.state, col)
-        if turn == 0:
-            next_state = self.mcts_drop_piece(self.state, row, col, player1_piece)
-        else:
-            next_state = self.mcts_drop_piece(self.state, row, col, player2_piece)
-        
-        # print(next_state)
-
-        # next_state = self.mcts_drop_piece(self.state, row, col, player2_piece)
-
-        child_node = MCTS(state=next_state, parent=self)
+        next_state = self.mcts_drop_piece(self.state, row, col, self.piece)
+        if self.piece == 1:
+            next_piece = 2
+        elif self.piece == 2:
+            next_piece = 1
+        child_node = MCTS(state=next_state, parent=self, piece=next_piece)
         self.children.append(child_node)
         return child_node
     
@@ -78,19 +75,17 @@ class MCTS():
 
     def rollout(self):
         current_rollout_state = self.state
-        turn = 0
+        cur_piece = self.piece
         while not is_terminal_node(current_rollout_state):
             possible_moves = get_valid_locations(current_rollout_state)
-            # print(np.flip(current_rollout_state, 0))
-            # print(possible_moves)
             col = self.rollout_policy(possible_moves)
             row = open_row(current_rollout_state, col)
-            if turn == 0:
-                current_rollout_state = self.mcts_drop_piece(current_rollout_state, row, col, player1_piece)
+            current_rollout_state = self.mcts_drop_piece(current_rollout_state, row, col, cur_piece)
+            # print(np.flip(current_rollout_state,0))
+            if cur_piece == 1:
+                cur_piece = 2
             else:
-                current_rollout_state = self.mcts_drop_piece(current_rollout_state, row, col, player2_piece)
-            turn += 1
-            turn = turn % 2
+                cur_piece = 1
         return game_result(current_rollout_state)
 
     
@@ -107,33 +102,29 @@ class MCTS():
 
     def best_child(self, c_param=2):
         choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
+        # print(choices_weights)
         return self.children[np.argmax(choices_weights)]
     
 
     def tree_policy(self):
         current_node = self
-        turn = 0
-        turn += 1
-        turn = turn % 2    
         while not is_terminal_node(current_node.state):
             if not current_node.is_fully_expanded():
-                return current_node.expand(turn)
+                return current_node.expand()
             else:
                 current_node = current_node.best_child()
-            turn += 1
-            turn = turn % 2 
         return current_node
 
 
     def best_action(self):
-        simulation_no = 100
-        # print(self.untried_cols)
+        simulation_no = 10000
         for i in range(simulation_no):
             v = self.tree_policy()
             reward = v.rollout()
-            print(reward)
+            # print(reward)
             v.backpropagate(reward)
-        return self.best_child(c_param=2)
+        # print(self.best_child())
+        return self.best_child()
 
 
 
@@ -673,7 +664,7 @@ while not game_over:
 
         elif player_2 == 5:
 
-            root = MCTS(state=board)
+            root = MCTS(state=board, piece=player2_piece)
             # root.create_state(board)
             board = root.best_action().state
             if len(get_valid_locations(board)) == 0:

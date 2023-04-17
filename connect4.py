@@ -25,19 +25,12 @@ class MCTS():
         self.results = defaultdict(int)
         self.results[1] = 0
         self.results[-1] = 0
-        # self.untried_cols = None
         self.untried_cols = self.untried_cols()
         self.piece = piece
         
-
-    # def create_state(self, board):
-    #     self.state = board
-
     
     def untried_cols(self):
-        # print(self.state)
         self.untried_cols = get_valid_locations(self.state)
-        # print("adwawd")
         return self.untried_cols
     
 
@@ -52,6 +45,7 @@ class MCTS():
     def mcts_drop_piece(self, board, row, col, piece):
         temp_board = board.copy()
         temp_board[row][col] = piece
+        # print(np.flip(temp_board , 0))
         return temp_board
 
 
@@ -102,7 +96,6 @@ class MCTS():
 
     def best_child(self, c_param=2):
         choices_weights = [(c.q() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
-        # print(choices_weights)
         return self.children[np.argmax(choices_weights)]
     
 
@@ -121,12 +114,8 @@ class MCTS():
         for i in range(simulation_no):
             v = self.tree_policy()
             reward = v.rollout()
-            # print(reward)
             v.backpropagate(reward)
-        # print(self.best_child())
         return self.best_child()
-
-
 
 
 
@@ -137,8 +126,6 @@ def game_result(board):
         return 1
     else:
         return 0
-
-
 
 
 def create_board():
@@ -174,9 +161,6 @@ def print_board(board):
         b += str(j+1) + '\t'
     print(b)
     print("\n\n")
-
-
-
 
 
 
@@ -290,6 +274,7 @@ def score_position(board, player):
 
     return score
 
+
 def get_valid_locations(board):
 	valid_locations = []
 	for col in range(column_count):
@@ -302,9 +287,7 @@ def is_terminal_node(board):
 	return winning_move(board, 1) or winning_move(board, 2) or len(get_valid_locations(board)) == 0
 
 
-
-
-def minimax(board, depth, alpha, beta, maximizingPlayer):
+def minimax(board, depth, maximizingPlayer):
     if turn != 0:
         valid_locations = get_valid_locations(board)
         is_terminal = is_terminal_node(board)
@@ -343,12 +326,6 @@ def minimax(board, depth, alpha, beta, maximizingPlayer):
                     value = new_score
                     column = col
             return column, value
-
-
-
-
-
-
 
 
 def alpha_beta(board, depth, alpha, beta, maximizingPlayer):
@@ -398,8 +375,6 @@ def alpha_beta(board, depth, alpha, beta, maximizingPlayer):
             return column, value
 
 
-
-
 def greedy(board, piece):
     valid_locations = get_valid_locations(board)
     best_score  = -math.inf
@@ -414,10 +389,6 @@ def greedy(board, piece):
             best_score = score
             best_col = col
     return best_col
-
-
-
-
 
 def draw_board(board):
 	for c in range(column_count):
@@ -434,9 +405,6 @@ def draw_board(board):
 	pygame.display.update()
 
 
-
-
-
 player_1 = int(input("Jogador 1(1: Humano,2: Greedy, 3:  Minimax, 4: Alpha Beta): "))
 player_2 = int(input("Jogador 2(1: Humano,2: Greedy, 3:  Minimax, 4: Alpha Beta, 5: MonteCarloTreeSearch): "))
 board = create_board()
@@ -445,7 +413,6 @@ game_over = False
 turn = 0
 
 pygame.init()
-
 
 
 SQUARESIZE = 75
@@ -493,13 +460,11 @@ while not game_over:
                             print(f"Empate!!")
                             label = myfont.render(f"Empate!!", 1, BLUE)
                             screen.blit(label, (40,10))
-                            # pygame.display.update()
                             game_over = True
                         if winning_move(board, player1_piece):
                             print(f"Jogador {player1_piece} ganhou!!")
                             label = myfont.render(f"Player {player1_piece} wins!!", 1, RED)
                             screen.blit(label, (40,10))
-                            # pygame.display.update()
                             game_over = True
                         print(score_position(board, player1_piece))
                         print_board(board)
@@ -523,20 +488,17 @@ while not game_over:
                         print(f"Empate!!")
                         label = myfont.render(f"Empate!!", 1, BLUE)
                         screen.blit(label, (40,10))
-                        # pygame.display.update()
                         game_over = True
                     if winning_move(board, player1_piece):
                         print(f"Jogador {player1_piece} ganhou!!")
                         label = myfont.render(f"Player {player1_piece} wins!!", 1, RED)
                         screen.blit(label, (40,10))
-                        # pygame.display.update()
                         game_over = True
                     print(score_position(board, player1_piece))
                     print_board(board)
                     draw_board(board)
                     turn += 1
                     turn = turn % 2
-
 
     else:
         if player_2 == 1:
@@ -563,13 +525,11 @@ while not game_over:
                             print(f"Empate!!")
                             label = myfont.render(f"Empate!!", 1, BLUE)
                             screen.blit(label, (40,10))
-                            # pygame.display.update()
                             game_over = True
                         if winning_move(board, player2_piece):
                             print(f"Jogador {player2_piece} ganhou!!")
                             label = myfont.render(f"Player {player2_piece} wins!!", 1, RED)
                             screen.blit(label, (40,10))
-                            # pygame.display.update()
                             game_over = True
                         print(score_position(board, player2_piece))
                         print_board(board)
@@ -590,13 +550,11 @@ while not game_over:
                     print(f"Empate!!")
                     label = myfont.render(f"Empate!!", 1, BLUE)
                     screen.blit(label, (40,10))
-                    # pygame.display.update()
                     game_over = True
                 if winning_move(board, player2_piece):
                     print(f"Jogador {player2_piece} ganhou!!")
                     label = myfont.render(f"Player {player2_piece} wins!!", 1, RED)
                     screen.blit(label, (40,10))
-                    # pygame.display.update()
                     game_over = True
                 print(score_position(board, player2_piece))
                 print_board(board)
@@ -606,7 +564,6 @@ while not game_over:
 
 
         elif player_2 == 3:
-
             time.sleep(1)
             col = minimax(board, 5, -math.inf, math.inf, True)[0]
             if is_valid_location(board, col):
@@ -617,23 +574,17 @@ while not game_over:
                     print(f"Empate!!")
                     label = myfont.render(f"Empate!!", 1, BLUE)
                     screen.blit(label, (40,10))
-                    # pygame.display.update()
                     game_over = True
                 if winning_move(board, player2_piece):
                     print(f"Jogador {player2_piece} ganhou!!")
                     label = myfont.render(f"Player {player2_piece} wins!!", 1, RED)
                     screen.blit(label, (40,10))
-                    # pygame.display.update()
                     game_over = True
                 print_board(board)
                 draw_board(board)
                 print(score_position(board, player2_piece))
                 turn += 1
                 turn = turn % 2
-
-
-
-
 
 
         elif player_2 == 4:
@@ -648,13 +599,11 @@ while not game_over:
                     print(f"Empate!!")
                     label = myfont.render(f"Empate!!", 1, BLUE)
                     screen.blit(label, (40,10))
-                    # pygame.display.update()
                     game_over = True
                 if winning_move(board, player2_piece):
                     print(f"Jogador {player2_piece} ganhou!!")
                     label = myfont.render(f"Player {player2_piece} wins!!", 1, RED)
                     screen.blit(label, (40,10))
-                    # pygame.display.update()
                     game_over = True
                 print_board(board)
                 draw_board(board)
@@ -665,26 +614,22 @@ while not game_over:
         elif player_2 == 5:
 
             root = MCTS(state=board, piece=player2_piece)
-            # root.create_state(board)
             board = root.best_action().state
             if len(get_valid_locations(board)) == 0:
                     print(f"Empate!!")
                     label = myfont.render(f"Empate!!", 1, BLUE)
                     screen.blit(label, (40,10))
-                    # pygame.display.update()
                     game_over = True
             if winning_move(board, player2_piece):
                 print(f"Jogador {player2_piece} ganhou!!")
                 label = myfont.render(f"Player {player2_piece} wins!!", 1, YELLOW)
                 screen.blit(label, (40,10))
-                # pygame.display.update()
                 game_over = True
             print_board(board)
             draw_board(board)
             print(score_position(board, player2_piece))
             turn += 1
             turn = turn % 2
-
 
 
 while game_over: 
